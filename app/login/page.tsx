@@ -1,13 +1,6 @@
 import SignIn from "@/app/components/sign-in";
-import { auth } from "@/auth";
-import { redirect } from "next/navigation";
 
-export default async function LoginPage() {
-    const session = await auth();
-    if( session?.user) {
-        // If already authenticated, redirect to home
-        redirect("/");
-    }
+export default function LoginPage() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 dark:from-gray-900 dark:to-gray-800 flex items-center justify-center px-4">
       <div className="w-full max-w-md">

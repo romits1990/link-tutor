@@ -1,13 +1,11 @@
 import { auth, signOut } from "@/auth";
-import { redirect } from "next/navigation";
 
 export default async function Home() {
   const session = await auth();
 
-  // If not authenticated, redirect to login
-  if (!session?.user) {
-    redirect("/login");
-  }
+  // The middleware now handles redirection for unauthenticated users,
+  // so the session is guaranteed to exist here. We can safely use ! to assert this.
+  const user = session!.user!;
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-800">
@@ -15,7 +13,7 @@ export default async function Home() {
       <header className="bg-white dark:bg-gray-800 shadow">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex justify-between items-center">
           <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
-            Welcome, {session.user.name}
+            Welcome, {user.name}
           </h1>
           <form
             action={async () => {
@@ -42,11 +40,11 @@ export default async function Home() {
               Profile Information
             </h2>
             <div className="space-y-3">
-              {session.user.image && (
+              {user.image && (
                 <div>
                   <img
-                    src={session.user.image}
-                    alt={session.user.name || "User avatar"}
+                    src={user.image}
+                    alt={user.name || "User avatar"}
                     className="w-16 h-16 rounded-full"
                   />
                 </div>
@@ -54,14 +52,14 @@ export default async function Home() {
               <div>
                 <p className="text-sm text-gray-600 dark:text-gray-400">Email</p>
                 <p className="text-gray-900 dark:text-white font-medium">
-                  {session.user.email}
+                  {user.email}
                 </p>
               </div>
-              {session.user.name && (
+              {user.name && (
                 <div>
                   <p className="text-sm text-gray-600 dark:text-gray-400">Name</p>
                   <p className="text-gray-900 dark:text-white font-medium">
-                    {session.user.name}
+                    {user.name}
                   </p>
                 </div>
               )}
