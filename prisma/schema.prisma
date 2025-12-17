@@ -6,7 +6,6 @@ generator client {
 
 datasource db {
   provider = "postgresql"
-  url      = env("DATABASE_URL")
 }
 
 // Required models for @auth/prisma-adapter
@@ -39,13 +38,15 @@ model Session {
 }
 
 model User {
-  id            String    @id @default(cuid())
+  id            String         @id @default(cuid())
   name          String?
-  email         String    @unique
+  email         String         @unique
   emailVerified DateTime?
   image         String?
   accounts      Account[]
   sessions      Session[]
+  sources       Source[]
+  ingestionJobs IngestionJob[]
 }
 
 model VerificationToken {
@@ -54,4 +55,46 @@ model VerificationToken {
   expires    DateTime
 
   @@unique([identifier, token])
+}
+
+// Required models for Ingestion
+
+model Source {
+  id     String @id @default(cuid())
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  url        String
+  title      String?
+  crawlDepth Int      @default(1)
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  jobs IngestionJob[]
+}
+
+enum IngestionJobStatus {
+  PENDING
+  CRAWLING
+  VECTORIZING
+  COMPLETED
+  FAILED
+}
+
+model IngestionJob {
+  id     String @id @default(cuid())
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  sourceId String
+  source   Source @relation(fields: [sourceId], references: [id], onDelete: Cascade)
+
+  status       IngestionJobStatus @default(PENDING)
+  errorMessage String?
+
+  totalPages  Int @default(0)
+  totalChunks Int @default(0)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }
