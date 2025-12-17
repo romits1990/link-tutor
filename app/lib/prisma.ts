@@ -1,6 +1,4 @@
-// lib/prisma.ts
-
-import { PrismaClient } from "@prisma/client" // 🌟 Use the NAMED import { PrismaClient }
+import { PrismaClient } from "@prisma/client";
 import { Pool } from 'pg'
 import { PrismaPg } from "@prisma/adapter-pg"
 
