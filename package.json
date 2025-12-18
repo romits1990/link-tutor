@@ -4,10 +4,11 @@
   "private": true,
   "scripts": {
     "dev": "rm -rf .next && next dev",
-    "build": "next build",
+    "build": "prisma generate && next build",
     "start": "next start",
     "lint": "eslint",
-    "reset-db": "rm -rf prisma/migrations && npx prisma db push --force-reset"
+    "reset-db": "rm -rf prisma/migrations && npx prisma db push --force-reset",
+    "postinstall": "prisma generate"
   },
   "dependencies": {
     "@auth/prisma-adapter": "^2.11.1",
