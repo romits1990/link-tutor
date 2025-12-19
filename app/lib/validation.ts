@@ -1,16 +1,16 @@
 import { isValidUrl } from "@/app/lib/utils";
 import { KNOWLEDGE_DEPTHS } from "@/app/lib/constants";
 
-export type KnowledgeDepthType = (typeof KNOWLEDGE_DEPTHS)[number];
+export type KnowledgeDepth = (typeof KNOWLEDGE_DEPTHS)[number];
 
-export type IngestionJobRequestType = {
+export type IngestionJobRequest = {
     pageUrl: string;
-    knowledgeDepth: KnowledgeDepthType;
+    knowledgeDepth: KnowledgeDepth;
 };
 
-export type ValidationResponseType = { valid: boolean; errors?: string[] };
+export type ValidationResponse = { valid: boolean; errors?: string[] };
 
-export const validateIngestionJobRequest = (data: IngestionJobRequestType): ValidationResponseType => {
+export const validateIngestionJobRequest = (data: IngestionJobRequest): ValidationResponse => {
     const errors: string[] = [];
     if (!data.pageUrl) {
         errors.push("pageUrl is required");
@@ -18,9 +18,8 @@ export const validateIngestionJobRequest = (data: IngestionJobRequestType): Vali
     if(isValidUrl(data.pageUrl) === false) {
         errors.push("pageUrl is not a valid url");
     }
-    const allowedDepths = ['basic', 'advanced', 'expert'];
-    if (!data.knowledgeDepth || allowedDepths.includes(data.knowledgeDepth) === false) {
-        errors.push("knowledgeDepth is required and must be a number");
+    if (!data.knowledgeDepth || KNOWLEDGE_DEPTHS.includes(data.knowledgeDepth) === false) {
+        errors.push("knowledgeDepth is required and must be a valid depth");
     }
     return { valid: errors.length === 0, errors };
 };

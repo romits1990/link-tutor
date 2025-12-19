@@ -19,7 +19,7 @@ export const prisma =
   new PrismaClient({ 
     adapter, 
     // Optional: Only log queries in development
-    // log: process.env.NODE_ENV === "development" ? ["query", "error", "warn"] : ["error"],
+    log: process.env.NODE_ENV === "development" ? ["query", "error", "warn"] : ["error"],
   })
 
 // In development, store the client on the global object
