@@ -3,11 +3,13 @@ import { auth, type AuthSession, type AuthUser } from "@/auth";
 import { prisma } from "@/app/lib/prisma";
 import type { 
     IngestionJobRequest,
-    ValidationResponse 
+    ValidationResponse
 } from "@/app/lib/validation";
 import { validateIngestionJobRequest } from "@/app/lib/validation";
 import { IngestionRepository } from "@/app/repositories/ingestion";
 import { type IngestionJob } from "@prisma/client";
+import { inngest } from "@/app/lib/inngest/client";
+import type { IngestionJobRequestPayload } from "@/app/lib/inngest/functions";
 
 export async function POST(req: NextRequest) {
     try {
@@ -16,12 +18,22 @@ export async function POST(req: NextRequest) {
         if (!validation.valid) {
             return NextResponse.json({ error: validation.errors }, { status: 400 });
         }
-        const { pageUrl, knowledgeDepth } = reqData;
 
-        const authSession = await auth() as AuthSession;
-        const { id: userId }: AuthUser = authSession.user;
+        // const authSession = await auth() as AuthSession;
+        // const { id: userId }: AuthUser = authSession.user;
+        const userId = "cmjdzg0tf0008d0hjd0z8v0mg";
+        const { pageUrl } = reqData;
         const ingestionRepository = new IngestionRepository(prisma);
-        const ingestionJob: IngestionJob = await ingestionRepository.createSourceIngestionJob(userId, pageUrl, knowledgeDepth);
+        const ingestionJob: IngestionJob = await ingestionRepository.createSourceIngestionJob(userId, pageUrl);
+        const eventData: IngestionJobRequestPayload = {
+            jobId: ingestionJob.id,
+            userId,
+            pageUrl
+        };
+        await inngest.send({
+            name: "ingestion/job.created",
+            data: eventData
+        });
 
         return NextResponse.json(
             { jobId: ingestionJob.id },

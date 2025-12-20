@@ -17,7 +17,11 @@ const adapter = new PrismaPg(pool)
 export const prisma = 
   globalForPrisma.prisma ?? 
   new PrismaClient({ 
-    adapter, 
+    adapter,
+    transactionOptions: {
+      maxWait: 10000, // 10s instead of 5s
+      timeout: 20000, // 20s
+    },
     // Optional: Only log queries in development
     log: process.env.NODE_ENV === "development" ? ["query", "error", "warn"] : ["error"],
   })

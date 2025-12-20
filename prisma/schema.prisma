@@ -93,7 +93,7 @@ model IngestionJob {
   errorMessage String?
 
   totalPages  Int @default(0)
-  totalChunks Int @default(0)
+  processedPages Int @default(0)
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
