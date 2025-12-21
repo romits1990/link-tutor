@@ -1,5 +1,6 @@
 import { HuggingFaceInferenceEmbeddings } from "@langchain/community/embeddings/hf";
 import type { Document } from "@langchain/core/documents";
+export type VectorDocument = Document & { vector: number[] };
 
 class Embeddings extends HuggingFaceInferenceEmbeddings {
     constructor() {
@@ -9,8 +10,12 @@ class Embeddings extends HuggingFaceInferenceEmbeddings {
         })
     }
 
-    generateVectors = async (documents: Document[]): Promise<number[][]> => {
-        return await this.embedDocuments(documents.map((d) => d.pageContent));
+    generateVectors = async (documents: Document[]): Promise<VectorDocument[]> => {
+        const rawVectors: number[][] = await this.embedDocuments(documents.map((d) => d.pageContent));
+        return documents.map((doc, index) => ({
+            ...doc,
+            vector: rawVectors[index]
+        }));
     }
 }
 

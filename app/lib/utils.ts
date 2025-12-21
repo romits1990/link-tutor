@@ -10,11 +10,18 @@ export const isValidUrl = (urlString: string): boolean => {
     }
 };
 
-export const chunkTextGenerator = async (text: string, chunkSize = 1000, chunkOverlap = 200): Promise<Document[]> => {
-  const splitter = new RecursiveCharacterTextSplitter({
-    chunkSize,
-    chunkOverlap
-  });
+export type ChunkTextOptions = {
+    chunkSize?: number;
+    chunkOverlap?: number;
+};
 
-  return await splitter.createDocuments([text]);
+export const chunkTextGenerator = async (
+    text: string,
+    metaData: any, 
+    options: ChunkTextOptions = {
+        chunkSize: 1000,
+        chunkOverlap: 200
+    }): Promise<Document[]> => {
+        const splitter = new RecursiveCharacterTextSplitter({...options});
+        return await splitter.createDocuments([text], [metaData]);
 }

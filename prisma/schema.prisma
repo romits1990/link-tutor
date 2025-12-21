@@ -98,3 +98,14 @@ model IngestionJob {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }
+
+// Embeddings
+
+model Document {
+  id        String   @id @default(cuid())
+  content   String
+  metadata  Json     @default("{}")
+  // Store the 384-dimensional vector from HuggingFace
+  embedding Unsupported("vector(384)")? 
+  createdAt DateTime @default(now())
+}

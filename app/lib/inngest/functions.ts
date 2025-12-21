@@ -72,11 +72,11 @@ export const processIndividualPage = inngest.createFunction(
   { id: "process-page" },
   { event: "crawler/page.discovered" },
   async ({ event, step }) => {
-    const { jobId, url: pageUrl, content } = event.data;
+    const { jobId, url:pageUrl, content } = event.data;
     
     // STEP 1: Chunking logic using your utility
     const documents: Document[] = await step.run("chunk-content", async () => {
-      return await chunkTextGenerator(content);
+      return await chunkTextGenerator(content, { source: pageUrl });
     });
 
     // STEP 2: Vector generation using your class
