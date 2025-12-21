@@ -5,6 +5,12 @@ import { Crawler, EVENT_TYPES as CRAWLER_EVENT_TYPES } from "url-crawler";
 import type { PageProcessedEventPayload } from "url-crawler";
 import { CRAWL_CONFIG } from "@/app/constants";
 
+import type { Document } from "@langchain/core/documents";
+import { embeddings } from "@/app/lib/embeddings";
+import { chunkTextGenerator } from "@/app/lib/utils";
+
+
+
 export type IngestionJobRequestPayload = {
   jobId: string;
   userId: string;
@@ -62,20 +68,32 @@ export const processIngestion = inngest.createFunction(
   }
 );
 
-
 export const processIndividualPage = inngest.createFunction(
   { id: "process-page" },
   { event: "crawler/page.discovered" },
   async ({ event, step }) => {
-    const { jobId, pageUrl, content } = event.data;
+    const { jobId, url: pageUrl, content } = event.data;
     
-    // 1. Heavy Work (LLM / Vector DB)
-    await step.run("vectorize", async () => {
-      // ... logic ...
+    // STEP 1: Chunking logic using your utility
+    const documents: Document[] = await step.run("chunk-content", async () => {
+      return await chunkTextGenerator(content);
     });
 
-    // 2. Increment and Check Completion
-    await step.run("update-progress", async () => {
+    // STEP 2: Vector generation using your class
+    const vectors = await step.run("generate-vectors", async () => {
+      // Inngest will automatically retry if HuggingFace is loading (503)
+      return await embeddings.generateVectors(documents);
+    });
+
+    // STEP 3: Store vectors in your vector DB
+    await step.run("store-vectors", async () => {
+      // Placeholder: Replace with your vector DB storage logic
+      // Example: await vectorDB.store(vectors, metadata);
+      console.log(`Storing ${vectors.length} vectors for page ${pageUrl}`);
+    });
+
+    // STEP 4: Atomic DB Update
+    await step.run("finalize-page", async () => {
       return await ingestionRepo.incrementPageProgress(jobId);
     });
   }
