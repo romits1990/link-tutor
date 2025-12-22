@@ -19,9 +19,9 @@ export async function POST(req: NextRequest) {
             return NextResponse.json({ error: validation.errors }, { status: 400 });
         }
 
-        // const authSession = await auth() as AuthSession;
-        // const { id: userId }: AuthUser = authSession.user;
-        const userId = "cmjdzg0tf0008d0hjd0z8v0mg";
+        const authSession = await auth() as AuthSession;
+        const { id: userId }: AuthUser = authSession.user;
+        // const userId = "cmjdzg0tf0008d0hjd0z8v0mg";
         const { pageUrl } = reqData;
         const ingestionRepository = new IngestionRepository(prisma);
         const ingestionJob: IngestionJob = await ingestionRepository.createSourceIngestionJob(userId, pageUrl);

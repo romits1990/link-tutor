@@ -22,6 +22,7 @@ export default auth((req) => {
   const isApiRoute = nextUrl.pathname.startsWith('/api');
 
   if (isApiRoute) {
+    // return NextResponse.next();
     if (isLoggedIn) return NextResponse.next();
     return NextResponse.json({ message: 'Unauthorized' }, { status: 401 });
   }

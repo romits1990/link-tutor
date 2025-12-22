@@ -4,13 +4,17 @@
   "private": true,
   "scripts": {
     "dev": "rm -rf .next && next dev",
-    "dev-db-client": "npx prisma studio",
     "dev-functions": "npx inngest-cli@latest dev",
-    "build": "prisma generate && next build",
+    "build": "npx prisma generate && npx prisma migrate deploy && next build",
+    "postinstall": "npx prisma generate",
     "start": "next start",
     "lint": "eslint",
-    "reset-db": "rm -rf prisma/migrations && prisma db push --force-reset",
-    "postinstall": "prisma generate"
+    "db:studio": "prisma studio",
+    "db:migrate": "npx prisma migrate dev",
+    "db:reset": "npx prisma migrate reset && npx prisma db seed",
+    "db:push": "npx prisma db push",
+    "db:deploy": "npx prisma migrate deploy",
+    "db:generate": "npx prisma generate"
   },
   "dependencies": {
     "@auth/prisma-adapter": "^2.11.1",
@@ -31,7 +35,7 @@
   },
   "devDependencies": {
     "@tailwindcss/postcss": "^4",
-    "@types/node": "^20",
+    "@types/node": "^20.19.27",
     "@types/pg": "^8.16.0",
     "@types/react": "^19",
     "@types/react-dom": "^19",
@@ -39,6 +43,7 @@
     "eslint-config-next": "16.0.10",
     "prisma": "^7.1.0",
     "tailwindcss": "^4",
-    "typescript": "^5"
+    "tsx": "^4.21.0",
+    "typescript": "^5.9.3"
   }
 }

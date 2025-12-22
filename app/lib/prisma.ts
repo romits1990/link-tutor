@@ -19,8 +19,8 @@ export const prisma =
   new PrismaClient({ 
     adapter,
     transactionOptions: {
-      maxWait: 10000, // 10s instead of 5s
-      timeout: 20000, // 20s
+      maxWait: 20000,
+      timeout: 30000,
     },
     // Optional: Only log queries in development
     log: process.env.NODE_ENV === "development" ? ["query", "error", "warn"] : ["error"],

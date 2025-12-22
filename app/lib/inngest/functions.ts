@@ -89,7 +89,7 @@ export const processIndividualPage = inngest.createFunction(
     await step.run("store-vectors", async () => {
       // Placeholder: Replace with your vector DB storage logic
       // Example: await vectorDB.store(vectors, metadata);
-      console.log(`Storing ${vectors.length} vectors for page ${pageUrl}`);
+      console.log(`Storing ${vectors}`);
     });
 
     // STEP 4: Atomic DB Update
