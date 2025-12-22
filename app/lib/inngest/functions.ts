@@ -1,6 +1,7 @@
 import { inngest } from "@/app/lib/inngest/client";
 import { prisma } from "@/app/lib/prisma";
 import { IngestionRepository } from "@/app/repositories/ingestion";
+import { EmbeddingsRepository } from "@/app/repositories/embeddings";
 import { Crawler, EVENT_TYPES as CRAWLER_EVENT_TYPES } from "url-crawler";
 import type { PageProcessedEventPayload } from "url-crawler";
 import { CRAWL_CONFIG } from "@/app/constants";
@@ -19,6 +20,8 @@ export type IngestionJobRequestPayload = {
 
 // Initialize ONCE at the top level
 const ingestionRepo = new IngestionRepository(prisma);
+const embeddingsRepo = new EmbeddingsRepository(prisma);
+
 
 export const processIngestion = inngest.createFunction(
   {
@@ -72,11 +75,11 @@ export const processIndividualPage = inngest.createFunction(
   { id: "process-page" },
   { event: "crawler/page.discovered" },
   async ({ event, step }) => {
-    const { jobId, url:pageUrl, content } = event.data;
+    const { jobId, url: sourceUrl, content } = event.data;
     
     // STEP 1: Chunking logic using your utility
     const documents: Document[] = await step.run("chunk-content", async () => {
-      return await chunkTextGenerator(content, { source: pageUrl });
+      return await chunkTextGenerator(content, { sourceUrl });
     });
 
     // STEP 2: Vector generation using your class
@@ -87,11 +90,11 @@ export const processIndividualPage = inngest.createFunction(
 
     // STEP 3: Store vectors in your vector DB
     await step.run("store-vectors", async () => {
-      // Placeholder: Replace with your vector DB storage logic
-      // Example: await vectorDB.store(vectors, metadata);
-      console.log(`Storing ${vectors}`);
+      // Bulk save all vectors generated for this page in one go
+        return await embeddingsRepo.savePageVectorsBulk(vectors, sourceUrl);
     });
 
+    
     // STEP 4: Atomic DB Update
     await step.run("finalize-page", async () => {
       return await ingestionRepo.incrementPageProgress(jobId);

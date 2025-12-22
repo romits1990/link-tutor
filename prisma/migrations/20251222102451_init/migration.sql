@@ -117,3 +117,14 @@ ALTER TABLE "IngestionJob" ADD CONSTRAINT "IngestionJob_userId_fkey" FOREIGN KEY
 
 -- AddForeignKey
 ALTER TABLE "IngestionJob" ADD CONSTRAINT "IngestionJob_sourceId_fkey" FOREIGN KEY ("sourceId") REFERENCES "Source"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+
+-- Create an HNSW index for high-performance vector similarity searches
+-- HNSW is generally faster for queries than the default IVFFlat for most use cases
+CREATE INDEX idx_document_embedding ON "Document" 
+USING hnsw ("embedding" vector_cosine_ops);
+
+-- Create a functional index on the metadata sourceUrl
+-- This makes the DELETE step in your recrawl logic (DELETE WHERE metadata->>'sourceUrl' = ...)
+-- significantly faster by avoiding a full table scan.
+CREATE INDEX idx_document_source_url ON "Document" (( "metadata"->>'sourceUrl' ));

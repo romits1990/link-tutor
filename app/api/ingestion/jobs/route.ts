@@ -21,7 +21,7 @@ export async function POST(req: NextRequest) {
 
         const authSession = await auth() as AuthSession;
         const { id: userId }: AuthUser = authSession.user;
-        // const userId = "cmjdzg0tf0008d0hjd0z8v0mg";
+        // const userId = "cmjgq07c40000m4hjc0dyq1bk";
         const { pageUrl } = reqData;
         const ingestionRepository = new IngestionRepository(prisma);
         const ingestionJob: IngestionJob = await ingestionRepository.createSourceIngestionJob(userId, pageUrl);
