@@ -1,6 +1,5 @@
 import { serve } from "inngest/next";
-import { inngest } from "@/app/lib/inngest/client";
-import { processIngestion, processIndividualPage } from "@/app/lib/inngest/functions";
+import { inngest, processIngestion, processIndividualPage } from "@/app/lib/inngest";
 
 export const { GET, POST, PUT } = serve({
   client: inngest,
