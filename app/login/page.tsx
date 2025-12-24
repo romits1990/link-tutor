@@ -1,4 +1,5 @@
 import SignIn from "@/app/components/sign-in";
+import NotificationTester from "@/app/components/notification-tester";
 
 export default function LoginPage() {
   return (
@@ -37,6 +38,7 @@ export default function LoginPage() {
           <p>Secure login powered by Google authentication</p>
         </div>
       </div>
+      <NotificationTester userId="cmjgq07c40000m4hjc0dyq1bk" />
     </div>
   );
 }
