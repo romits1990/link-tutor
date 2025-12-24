@@ -8,8 +8,8 @@ import type {
 import { validateIngestionJobRequest } from "@/app/lib/validation";
 import { IngestionRepository } from "@/app/repositories/ingestion";
 import { type IngestionJob } from "@prisma/client";
-import { inngest } from "@/app/lib/inngest/client";
-import type { IngestionJobRequestPayload } from "@/app/lib/inngest/functions";
+import { inngest } from "@/app/lib/inngest";
+import type { IngestionJobRequestPayload } from "@/app/lib/inngest";
 
 export async function POST(req: NextRequest) {
     try {
@@ -34,7 +34,6 @@ export async function POST(req: NextRequest) {
             name: "ingestion/job.created",
             data: eventData
         });
-
         return NextResponse.json(
             { jobId: ingestionJob.id },
             { status: 202 }

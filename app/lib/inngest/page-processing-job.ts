@@ -32,10 +32,16 @@ export const processIndividualPage = inngest.createFunction(
         return await embeddingsRepo.savePageVectorsBulk(vectors, sourceUrl);
     });
 
-    
     // STEP 4: Atomic DB Update
-    await step.run("finalize-page", async () => {
-      return await ingestionRepo.incrementPageProgress(jobId);
+    await step.run("increment-and-signal", async () => {
+      await ingestionRepo.updateById(jobId, {
+            processedPages: { increment: 1 }
+      });
+      // Signal back to the main function's waitForEvent
+      await inngest.send({
+        name: "ingestion/page.processed",
+        data: { jobId }
+      });
     });
   }
 );

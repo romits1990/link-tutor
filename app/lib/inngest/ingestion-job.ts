@@ -59,5 +59,32 @@ export const processIngestion = inngest.createFunction(
         totalPages: crawlResult.totalPages
       });
     });
+
+    // STEP 4: Wait for the last page to finish
+    // This pauses the function until the processing job sends a 'page.processed' signal
+    await step.waitForEvent("wait-for-all-pages", {
+        event: "ingestion/page.processed", 
+        timeout: "2h",
+        match: "data.jobId",
+        // Use an async function to get fresh DB data
+        if: (async () => {
+            const job = await ingestionRepo.getById(jobId);
+            console.log({job})
+            // Ensure job exists and all pages are processed
+            return !!job && job.totalPages > 0 && job.processedPages >= job.totalPages;
+        }) as any
+    });
+
+    await step.run("finalize-ingestion-job", async () => {
+      return await ingestionRepo.updateJobStatus(jobId, "COMPLETED");
+    });
+
+    // STEP 5: Trigger your new Notification Job
+    await step.sendEvent("trigger-final-notification", {
+      name: "notification/crawl-completed",
+      data: { jobId, userId }
+    });
+
+    
   }
 );
