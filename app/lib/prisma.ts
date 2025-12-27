@@ -17,9 +17,13 @@ const adapter = new PrismaPg(pool)
 export const prisma = 
   globalForPrisma.prisma ?? 
   new PrismaClient({ 
-    adapter, 
+    adapter,
+    transactionOptions: {
+      maxWait: 20000,
+      timeout: 30000,
+    },
     // Optional: Only log queries in development
-    // log: process.env.NODE_ENV === "development" ? ["query", "error", "warn"] : ["error"],
+    log: process.env.NODE_ENV === "development" ? ["query", "error", "warn"] : ["error"],
   })
 
 // In development, store the client on the global object

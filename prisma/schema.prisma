@@ -93,8 +93,19 @@ model IngestionJob {
   errorMessage String?
 
   totalPages  Int @default(0)
-  totalChunks Int @default(0)
+  processedPages Int @default(0)
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+}
+
+// Embeddings
+
+model Document {
+  id        String   @id @default(cuid())
+  content   String
+  metadata  Json     @default("{}")
+  // Store the 384-dimensional vector from HuggingFace
+  embedding Unsupported("vector(384)")? 
+  createdAt DateTime @default(now())
 }

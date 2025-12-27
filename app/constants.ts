@@ -1,0 +1,1 @@
+export const CRAWL_CONFIG = { MAX_DEPTH: 1, MAX_PAGES: 1, ROBOTS_CACHE_TTL_MS: 1 * 60 * 60 * 1000 }

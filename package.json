@@ -4,27 +4,40 @@
   "private": true,
   "scripts": {
     "dev": "rm -rf .next && next dev",
-    "build": "prisma generate && next build",
+    "dev-functions": "npx inngest-cli@latest dev",
+    "build": "npx prisma generate && npx prisma migrate deploy && next build",
+    "postinstall": "npx prisma generate",
     "start": "next start",
     "lint": "eslint",
-    "reset-db": "rm -rf prisma/migrations && npx prisma db push --force-reset",
-    "postinstall": "prisma generate"
+    "db:studio": "prisma studio",
+    "db:migrate": "npx prisma migrate dev",
+    "db:reset": "npx prisma migrate reset && npx prisma db seed",
+    "db:push": "npx prisma db push",
+    "db:deploy": "npx prisma migrate deploy",
+    "db:generate": "npx prisma generate"
   },
   "dependencies": {
     "@auth/prisma-adapter": "^2.11.1",
+    "@huggingface/inference": "^4.13.5",
+    "@langchain/community": "^1.1.1",
+    "@langchain/core": "^1.1.7",
     "@prisma/adapter-pg": "^7.1.0",
     "@prisma/client": "^7.1.0",
     "@prisma/extension-accelerate": "^3.0.1",
+    "inngest": "^3.48.0",
+    "langchain": "^1.2.2",
     "next": "16.0.10",
     "next-auth": "^5.0.0-beta.30",
     "pg": "^8.16.3",
+    "pusher": "^5.2.0",
+    "pusher-js": "^8.4.0",
     "react": "19.2.1",
     "react-dom": "19.2.1",
     "url-crawler": "^1.2.0"
   },
   "devDependencies": {
     "@tailwindcss/postcss": "^4",
-    "@types/node": "^20",
+    "@types/node": "^20.19.27",
     "@types/pg": "^8.16.0",
     "@types/react": "^19",
     "@types/react-dom": "^19",
@@ -32,6 +45,7 @@
     "eslint-config-next": "16.0.10",
     "prisma": "^7.1.0",
     "tailwindcss": "^4",
-    "typescript": "^5"
+    "tsx": "^4.21.0",
+    "typescript": "^5.9.3"
   }
 }

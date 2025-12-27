@@ -8,8 +8,13 @@ export default auth((req) => {
   const { nextUrl } = req;
   const isLoggedIn = !!req.auth;
 
-  // 1. Skip middleware for API Auth routes (IMPORTANT)
+  // Skip middleware for API Auth routes (IMPORTANT)
   if (nextUrl.pathname.startsWith('/api/auth')) {
+    return NextResponse.next();
+  }
+
+  // Skip middleware for Inngest (it uses signing keys, not cookies)
+  if (nextUrl.pathname.startsWith('/api/inngest')) {
     return NextResponse.next();
   }
 
@@ -17,6 +22,7 @@ export default auth((req) => {
   const isApiRoute = nextUrl.pathname.startsWith('/api');
 
   if (isApiRoute) {
+    // return NextResponse.next();
     if (isLoggedIn) return NextResponse.next();
     return NextResponse.json({ message: 'Unauthorized' }, { status: 401 });
   }
