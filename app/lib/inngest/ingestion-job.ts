@@ -68,8 +68,7 @@ export const processIngestion = inngest.createFunction(
         match: "data.jobId",
         // Use an async function to get fresh DB data
         if: (async () => {
-            const job = await ingestionRepo.getById(jobId);
-            console.log({job})
+            const job = await ingestionRepo.findById(jobId);
             // Ensure job exists and all pages are processed
             return !!job && job.totalPages > 0 && job.processedPages >= job.totalPages;
         }) as any
