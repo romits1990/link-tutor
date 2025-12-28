@@ -14,7 +14,12 @@ export function CaptureUrlForm() {
     setError(null);
 
     startTransition(async () => {
-      await submitUrl(pageUrl);
+      try {
+        const jobId = await submitUrl(pageUrl);
+        setPageUrl('');
+      } catch (err) {
+        setError(err instanceof Error ? err.message : 'Failed to submit URL');
+      }
     });
   };
 

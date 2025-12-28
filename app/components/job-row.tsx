@@ -1,5 +1,6 @@
 'use client';
 
+import { memo } from 'react';
 import Link from 'next/link';
 import type { JobWithSource } from '@/app/lib/types';
 import { getStatusColor } from '@/app/lib/utils';
@@ -9,7 +10,7 @@ interface JobRowProps {
   isHighlighted: boolean;
 }
 
-export default function JobRow({ job, isHighlighted }: JobRowProps) {
+const JobRow = memo(function JobRow({ job, isHighlighted }: JobRowProps) {
   // Status is now provided by parent via job prop (updated via parent's useUserJobsStatus hook)
   const currentStatus = job.status;
 
@@ -80,4 +81,6 @@ export default function JobRow({ job, isHighlighted }: JobRowProps) {
       </td>
     </tr>
   );
-}
+});
+
+export default JobRow;

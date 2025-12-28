@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useRef, useCallback, useMemo } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useUserJobsStatus } from '@/app/lib/hooks/useUserJobsStatus';
 import JobRow from '@/app/components/job-row';
 import type { JobWithSource } from '@/app/lib/types';
@@ -9,57 +9,25 @@ export function JobsList({ userId }: { userId: string }) {
   const [jobs, setJobs] = useState<JobWithSource[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [highlightedJobId, setHighlightedJobId] = useState<string | null>(null);
-  const [statusMap, setStatusMap] = useState<Record<string, string>>({});
-  const processedJobIdRef = useRef<string | null>(null);
-  const jobsRef = useRef<JobWithSource[]>([]);
+  const fetchedJobIdsRef = useRef<Set<string>>(new Set());
+  const hasInitialFetchRef = useRef(false);
+  const [hasMounted, setHasMounted] = useState(false);
   
-  // Subscribe to all job updates for this user
-  const jobUpdates = useUserJobsStatus(userId);
+  // Subscribe to all job updates for this user only after component mounts
+  const jobUpdates = useUserJobsStatus(hasMounted ? userId : null);
 
-  // Update status map whenever jobUpdates changes
+  // Fetch initial jobs on mount
   useEffect(() => {
-    setStatusMap(prev => {
-      let hasChanges = false;
-      const updated = { ...prev };
-      
-      Object.entries(jobUpdates).forEach(([jobId, update]) => {
-        if (updated[jobId] !== update.status) {
-          updated[jobId] = update.status;
-          hasChanges = true;
-        }
-      });
-      
-      return hasChanges ? updated : prev;
-    });
-  }, [jobUpdates]);
+    if (hasInitialFetchRef.current) return;
+    hasInitialFetchRef.current = true;
 
-  // Memoized function to fetch and add a single job
-  const fetchAndAddJob = useCallback(async (jobId: string) => {
-    try {
-      const response = await fetch(`/api/ingestion/jobs/${jobId}`);
-      const newJob: JobWithSource = await response.json();
-      
-      setJobs(prev => {
-        if (prev.some(j => j.id === jobId)) {
-          return prev;
-        }
-        jobsRef.current = [newJob, ...prev];
-        return jobsRef.current;
-      });
-      setHighlightedJobId(jobId);
-    } catch (error) {
-      console.error('Failed to fetch new job:', error);
-    }
-  }, []);
-
-  useEffect(() => {
-    // Fetch initial jobs only once on mount
     const fetchJobs = async () => {
       try {
         const response = await fetch('/api/ingestion/jobs/list');
         const data: JobWithSource[] = await response.json();
-        jobsRef.current = data;
         setJobs(data);
+        // Mark all initial jobs as fetched
+        data.forEach(job => fetchedJobIdsRef.current.add(job.id));
         setIsLoading(false);
       } catch (error) {
         console.error('Failed to fetch jobs:', error);
@@ -68,39 +36,51 @@ export function JobsList({ userId }: { userId: string }) {
     };
 
     fetchJobs();
+    setHasMounted(true);
   }, []);
 
+  // Handle new jobs from URL parameter
   useEffect(() => {
-    // Extract jobId from URL and fetch if new
     const params = new URLSearchParams(window.location.search);
     const jobId = params.get('jobId');
     
-    if (jobId && jobId !== processedJobIdRef.current) {
-      processedJobIdRef.current = jobId;
-      fetchAndAddJob(jobId);
+    if (jobId && !fetchedJobIdsRef.current.has(jobId)) {
+      fetchedJobIdsRef.current.add(jobId);
+      setHighlightedJobId(jobId);
+      
+      const fetchNewJob = async () => {
+        try {
+          const response = await fetch(`/api/ingestion/jobs/${jobId}`);
+          const newJob: JobWithSource = await response.json();
+          setJobs(prev => {
+            // update status for existing
+            const exists = prev.some(job => job.id === newJob.id);
+            if (exists) {
+              return prev.map(job => job.id === newJob.id ? newJob : job);
+            }
+            // add new
+            return [...prev, newJob];
+          });
+        } catch (error) {
+          console.error('Failed to fetch new job:', error);
+        }
+      };
+      
+      fetchNewJob();
     }
+  }, []);
 
-    // Listen for URL changes via popstate
-    const handlePopState = () => {
-      const params = new URLSearchParams(window.location.search);
-      const newJobId = params.get('jobId');
-      if (newJobId && newJobId !== processedJobIdRef.current) {
-        processedJobIdRef.current = newJobId;
-        fetchAndAddJob(newJobId);
-      }
-    };
+  // Update job status based on Pusher updates
+  useEffect(() => {
+    if (Object.keys(jobUpdates).length === 0) return;
 
-    window.addEventListener('popstate', handlePopState);
-    return () => window.removeEventListener('popstate', handlePopState);
-  }, [fetchAndAddJob]);
-
-  // Memoized jobs with applied status updates to prevent unnecessary JobRow re-renders
-  const jobsWithStatus = useMemo(() => {
-    return jobs.map(job => ({
-      ...job,
-      status: (statusMap[job.id] as any) || job.status
-    }));
-  }, [jobs, statusMap]);
+    setJobs(prev =>
+      prev.map(job => ({
+        ...job,
+        status: jobUpdates[job.id]?.status || job.status
+      }))
+    );
+  }, [jobUpdates]);
 
   if (isLoading && jobs.length === 0) {
     return <div className="text-center py-8 text-gray-500">Loading jobs...</div>;
@@ -127,7 +107,7 @@ export function JobsList({ userId }: { userId: string }) {
           </tr>
         </thead>
         <tbody>
-          {jobsWithStatus.map((job) => (
+          {jobs.map((job) => (
             <JobRow
               key={job.id}
               job={job}

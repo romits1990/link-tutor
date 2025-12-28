@@ -37,5 +37,5 @@ export async function submitUrl(pageUrl: string) {
   const data = await response.json();
   
   // Redirect to dashboard with jobId
-  redirect(`/dashboard?jobId=${data.jobId}`);
+  redirect(`/jobs?jobId=${data.jobId}`);
 }
