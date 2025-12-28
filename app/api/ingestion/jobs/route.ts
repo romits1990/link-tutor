@@ -1,5 +1,4 @@
 import { NextRequest, NextResponse } from "next/server";
-import { auth, type AuthSession, type AuthUser } from "@/auth";
 import { prisma } from "@/app/lib/prisma";
 import type { 
     IngestionJobRequest,
@@ -10,6 +9,7 @@ import { IngestionRepository } from "@/app/repositories/ingestion";
 import { type IngestionJob } from "@prisma/client";
 import { inngest } from "@/app/lib/inngest";
 import type { IngestionJobRequestPayload } from "@/app/lib/inngest";
+import { verifySignedUserId } from "@/auth";
 
 export async function POST(req: NextRequest) {
     try {
@@ -19,9 +19,11 @@ export async function POST(req: NextRequest) {
             return NextResponse.json({ error: validation.errors }, { status: 400 });
         }
 
-        const authSession = await auth() as AuthSession;
-        const { id: userId }: AuthUser = authSession.user;
-        // const userId = "cmjgq07c40000m4hjc0dyq1bk";
+        const userId = verifySignedUserId(req.headers.get('X-User-Id'));
+        if (!userId) {
+            return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+        }
+
         const { pageUrl } = reqData;
         const ingestionRepository = new IngestionRepository(prisma);
         const ingestionJob: IngestionJob = await ingestionRepository.createSourceIngestionJob(userId, pageUrl);

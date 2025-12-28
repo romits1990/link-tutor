@@ -22,13 +22,15 @@ export default auth((req) => {
   const isApiRoute = nextUrl.pathname.startsWith('/api');
 
   if (isApiRoute) {
-    // return NextResponse.next();
-    if (isLoggedIn) return NextResponse.next();
+    // Allow API routes with X-User-Id header (from authenticated server actions)
+    if (req.headers.has('X-User-Id') || isLoggedIn) {
+      return NextResponse.next();
+    }
     return NextResponse.json({ message: 'Unauthorized' }, { status: 401 });
   }
 
   if (isLoginPage) {
-    if (isLoggedIn) return Response.redirect(new URL('/', nextUrl));
+    if (isLoggedIn) return Response.redirect(new URL('/dashboard', nextUrl));
     return NextResponse.next();
   }
 
