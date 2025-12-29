@@ -47,6 +47,7 @@ model User {
   sessions      Session[]
   sources       Source[]
   ingestionJobs IngestionJob[]
+  chats         Chat[]
 }
 
 model VerificationToken {
@@ -97,6 +98,33 @@ model IngestionJob {
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+  
+  chats Chat[]
+}
+
+model Chat {
+  id    String @id @default(cuid())
+  jobId String
+  job   IngestionJob @relation(fields: [jobId], references: [id], onDelete: Cascade)
+
+  userId String
+  user   User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  messages ChatMessage[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model ChatMessage {
+  id       String @id @default(cuid())
+  chatId   String
+  chat     Chat   @relation(fields: [chatId], references: [id], onDelete: Cascade)
+
+  role    String // "user" or "assistant"
+  content String @db.Text
+
+  createdAt DateTime @default(now())
 }
 
 // Embeddings
