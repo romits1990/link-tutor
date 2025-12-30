@@ -17,6 +17,8 @@
     "db:generate": "npx prisma generate"
   },
   "dependencies": {
+    "@ai-sdk/groq": "^3.0.1",
+    "@ai-sdk/react": "^3.0.3",
     "@auth/prisma-adapter": "^2.11.1",
     "@huggingface/inference": "^4.13.5",
     "@langchain/community": "^1.1.1",
@@ -24,6 +26,7 @@
     "@prisma/adapter-pg": "^7.1.0",
     "@prisma/client": "^7.1.0",
     "@prisma/extension-accelerate": "^3.0.1",
+    "ai": "^6.0.3",
     "inngest": "^3.48.0",
     "langchain": "^1.2.2",
     "next": "16.0.10",

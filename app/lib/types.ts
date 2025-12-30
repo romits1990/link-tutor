@@ -7,3 +7,10 @@ export interface JobWithSource extends IngestionJob {
     title: string | null;
   };
 }
+
+export interface SimilarDocument {
+  id: string;
+  content: string;
+  metadata: any;
+  similarity: number;
+}

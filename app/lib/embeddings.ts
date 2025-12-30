@@ -17,6 +17,20 @@ class Embeddings extends HuggingFaceInferenceEmbeddings {
           vector: rawVectors[index]
       }));
     }
+
+    generateEmbeddingsFromTexts = async (texts: string[]): Promise<number[][]> => {
+      if(texts.length === 0) {
+        return [];
+      }
+      try {
+        return await this.embedDocuments(texts);
+      }
+      catch (error) {
+        console.error("Error generating embeddings from texts:", error);
+        throw error;
+      }
+    }
+
 }
 
 export const embeddings = new Embeddings();

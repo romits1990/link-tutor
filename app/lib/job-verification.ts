@@ -1,4 +1,5 @@
 import { prisma } from '@/app/lib/prisma';
+import { IngestionJob } from '@prisma/client';
 
 /**
  * Verifies that a job exists and belongs to the specified user
@@ -7,7 +8,7 @@ import { prisma } from '@/app/lib/prisma';
  * @returns The job if verification passes
  * @throws Error if job doesn't exist or doesn't belong to user
  */
-export async function verifyJobOwnership(jobId: string, userId: string) {
+export async function verifyJobOwnership(jobId: string, userId: string): Promise<IngestionJob> {
   const job = await prisma.ingestionJob.findUnique({
     where: { id: jobId },
   });

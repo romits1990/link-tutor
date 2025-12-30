@@ -1,5 +1,6 @@
-import { PrismaClient } from "@prisma/client";
+import { PrismaClient, Prisma } from "@prisma/client";
 import { VectorDocument } from "@/app/lib/embeddings";
+import { SimilarDocument } from "../lib/types";
 
 export class EmbeddingsRepository {
     private prisma: PrismaClient;
@@ -34,5 +35,26 @@ export class EmbeddingsRepository {
 
             return await tx.$executeRawUnsafe(query, ...flattenedValues);
         });
+    }
+
+    /**
+     * Performs a Cosine Similarity search using pgvector
+     * 1 - Cosine Distance = Cosine Similarity
+     */
+    async querySimilarDocuments(jobId: string, queryVector: number[], limit: number = 5): Promise<SimilarDocument[]> {
+        // We use $queryRaw because Prisma doesn't natively support vector operators yet
+        const results = await this.prisma.$queryRaw<any[]>`
+            SELECT 
+                "id", 
+                "content", 
+                "metadata", 
+                1 - ("embedding" <=> ${JSON.stringify(queryVector)}::vector) as similarity
+            FROM "Document"
+            WHERE "metadata"->>'jobId' = ${jobId}
+            ORDER BY "embedding" <=> ${JSON.stringify(queryVector)}::vector
+            LIMIT ${limit};
+        `;
+
+        return results;
     }
 }
