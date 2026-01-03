@@ -11,7 +11,7 @@
     "lint": "eslint",
     "db:studio": "prisma studio",
     "db:migrate": "npx prisma migrate dev",
-    "db:reset": "npx prisma migrate reset && npx prisma db seed",
+    "db:reset": "npx prisma migrate reset",
     "db:push": "npx prisma db push",
     "db:deploy": "npx prisma migrate deploy",
     "db:generate": "npx prisma generate"

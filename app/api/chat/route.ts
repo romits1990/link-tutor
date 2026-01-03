@@ -3,7 +3,7 @@ import { prisma } from '@/app/lib/prisma';
 import { NextRequest, NextResponse } from 'next/server';
 import { verifyJobOwnership } from '@/app/lib/job-verification';
 import { groq } from '@ai-sdk/groq';
-import { streamText, convertToModelMessages, UIMessage } from 'ai';
+import { streamText, convertToModelMessages, UIMessage, createUIMessageStream, createUIMessageStreamResponse } from 'ai';
 import { embeddings } from '@/app/lib/embeddings';
 import { EmbeddingsRepository } from "@/app/repositories/embeddings";
 import { SimilarDocument } from '@/app/lib/types';
@@ -112,6 +112,36 @@ export async function POST(req: Request) {
     // 2. Retrieve relevant documents based on the embedding
     const searchResults: SimilarDocument[] = await embeddingsRepo.querySimilarDocuments(jobId, queryVector);
 
+    if(searchResults.length === 0) {
+      const noContextMessage = "I'm sorry, I couldn't find any relevant information in the ingested content to answer that question. Please try asking something else.";
+      
+      const stream = createUIMessageStream({
+        execute: async ({ writer }) => {
+          writer.write({
+            type: 'text-start',
+            id: 'no-context-msg',
+          });
+
+          writer.write({
+            type: 'text-delta',
+            delta: noContextMessage,
+            id: 'no-context-msg',
+          });
+
+          writer.write({
+            type: 'text-end',
+            id: 'no-context-msg',
+          });
+
+          writer.write({
+            type: 'finish',
+          });
+        },
+      });
+
+      return createUIMessageStreamResponse({ stream });
+    }
+
     return await processBotResponse(searchResults, messages);
   } catch (error) {
     console.error('Error processing chat:', error);
@@ -124,11 +154,9 @@ export async function POST(req: Request) {
 
 // Helper function to process and return bot response with or without context
 async function processBotResponse(searchResults: SimilarDocument[], messages: UIMessage[]) {
-  const systemPrompt = searchResults.length === 0
-    ? `You are a helpful assistant. If you cannot find relevant information in the ingested content to answer the question, politely inform the user and suggest they try rephrasing their question.`
-    : `You are a helpful assistant. Use the following context to answer the user's question:\n\n${searchResults
-        .map((c: any) => `Source: ${c.sourceUrl}\nContent: ${c.content}`)
-        .join('\n\n')}`;
+  const systemPrompt = `You are a helpful assistant. Use the following context to answer the user's question:\n\n${searchResults
+    .map((c: any) => `Source: ${c.sourceUrl}\nContent: ${c.content}`)
+    .join('\n\n')}`;
 
   const result = await streamText({
     model: groq(process.env.GROQ_MODEL || 'llama-3.3-70b-versatile'),

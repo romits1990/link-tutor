@@ -14,6 +14,11 @@ export default function ChatInterface({ jobId }: { jobId: string }) {
         jobId,
       },
     }),
+    onData: (part) => {
+      if (part.type === 'data-custom') {
+        console.log(part.data);
+      }
+    }
   });
 
   const messagesEndRef = useRef<HTMLDivElement>(null);
