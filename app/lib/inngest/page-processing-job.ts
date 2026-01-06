@@ -14,6 +14,11 @@ export const processIndividualPage = inngest.createFunction(
   { event: "crawler/page.discovered" },
   async ({ event, step }) => {
     const { jobId, url: sourceUrl, content } = event.data;
+
+    if(content.trim().length === 0) {
+      console.warn(`[processIndividualPage] Empty content for ${sourceUrl}, skipping.`);
+      return;
+    }
     
     // STEP 1: Chunking logic using your utility
     const documents: Document[] = await step.run("chunk-content", async () => {

@@ -6,10 +6,12 @@ import { groq } from '@ai-sdk/groq';
 import { streamText, convertToModelMessages, UIMessage, createUIMessageStream, createUIMessageStreamResponse } from 'ai';
 import { embeddings } from '@/app/lib/embeddings';
 import { EmbeddingsRepository } from "@/app/repositories/embeddings";
-import { SimilarDocument } from '@/app/lib/types';
+import { JobWithSource, SimilarDocument } from '@/app/lib/types';
 import { validateChatRequest } from '@/app/lib/validation';
+import { IngestionRepository } from '@/app/repositories/ingestion';
 
 const embeddingsRepo = new EmbeddingsRepository(prisma);
+const ingestionJobRepo = new IngestionRepository(prisma);
 
 
 export async function GET(request: NextRequest) {
@@ -98,6 +100,7 @@ export async function POST(req: Request) {
   }
   
   const { messages, jobId }: { messages: UIMessage[]; jobId: string } = requestBody;
+  const { source: { url: sourceUrl } }: JobWithSource  = (await ingestionJobRepo.findById(jobId, { source: true }))!;
   // Get last text message from user
   const lastMessage = messages[messages.length - 1];
   const lastTextContent = lastMessage.parts
@@ -110,7 +113,7 @@ export async function POST(req: Request) {
     // 1. Generate embedding for the user's question
     const [queryVector] = await embeddings.generateEmbeddingsFromTexts([lastTextContent]);
     // 2. Retrieve relevant documents based on the embedding
-    const searchResults: SimilarDocument[] = await embeddingsRepo.querySimilarDocuments(jobId, queryVector);
+    const searchResults: SimilarDocument[] = await embeddingsRepo.querySimilarDocuments(sourceUrl, queryVector);
 
     if(searchResults.length === 0) {
       const noContextMessage = "I'm sorry, I couldn't find any relevant information in the ingested content to answer that question. Please try asking something else.";
